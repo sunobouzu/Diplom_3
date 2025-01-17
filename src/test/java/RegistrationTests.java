@@ -1,11 +1,10 @@
-import UserApi.UserApi;
+import factories.BrowserType;
+import factories.WebDriverFactory;
 import generators.UserGenerator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
-import factories.WebDriverFactory;
-import factories.BrowserType;
 
 import static org.junit.Assert.assertTrue;
 

@@ -1,14 +1,19 @@
+import UserApi.UserApi;
 import factories.BrowserType;
 import factories.WebDriverFactory;
 import generators.UserGenerator;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
+import io.restassured.response.ValidatableResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import pageObjects.LoginPage;
 import pageObjects.MainPage;
-import pageObjects.RegisterPage;
+
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class MainPageTests extends BaseTest {
 
@@ -16,26 +21,25 @@ public class MainPageTests extends BaseTest {
     private String password;
     private String name;
 
+    private UserApi userApi;
+
     @Before
     public void setUp() {
         driver = WebDriverFactory.createWebDriver(BrowserType.CHROME);
         mainPage = new MainPage(driver);
-        registerPage = new RegisterPage(driver);
         loginPage = new LoginPage(driver);
-
+        userApi = new UserApi();
 
         email = UserGenerator.generateUniqueEmail();
         password = UserGenerator.generateRandomPassword(8);
         name = UserGenerator.generateRandomName();
 
 
-        mainPage.openMainPage();
-        registerPage.openRegisterPage();
-        registerPage.enterName(name);
-        registerPage.enterEmail(email);
-        registerPage.enterPassword(password);
-        registerPage.clickRegisterButton();
-
+        UserApi.UserData user = new UserApi.UserData(email, password, name);
+        ValidatableResponse response = userApi.registerUser(user);
+        assertEquals(200, response.extract().statusCode());
+        assertTrue("Регистрация не удалась", response.extract().jsonPath().getBoolean("success"));
+        accessToken = response.extract().jsonPath().getString("accessToken");
 
         mainPage.openMainPage();
         mainPage.clickLoginButton();

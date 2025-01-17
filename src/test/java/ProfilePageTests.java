@@ -1,27 +1,28 @@
+import UserApi.UserApi;
 import factories.BrowserType;
 import factories.WebDriverFactory;
 import generators.UserGenerator;
-import org.junit.After;
+import io.restassured.response.ValidatableResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
 import pageObjects.LoginPage;
 import pageObjects.MainPage;
 import pageObjects.ProfilePage;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class ProfilePageTests {
+public class ProfilePageTests extends BaseTest {
 
-    private WebDriver driver;
-    private pageObjects.RegisterPage registerPage;
     private LoginPage loginPage;
     private MainPage mainPage;
     private ProfilePage profilePage;
     private String email;
     private String password;
     private String name;
+
+    private UserApi userApi;
 
     @Before
     public void setUp() {
@@ -30,6 +31,7 @@ public class ProfilePageTests {
         loginPage = new LoginPage(driver);
         mainPage = new MainPage(driver);
         profilePage = new ProfilePage(driver);
+        userApi = new UserApi();
 
 
         name = UserGenerator.generateRandomName();
@@ -37,11 +39,11 @@ public class ProfilePageTests {
         password = UserGenerator.generateRandomPassword(8);
 
 
-        registerPage.openRegisterPage();
-        registerPage.enterName(name);
-        registerPage.enterEmail(email);
-        registerPage.enterPassword(password);
-        registerPage.clickRegisterButton();
+        UserApi.UserData user = new UserApi.UserData(email, password, name);
+        ValidatableResponse response = userApi.registerUser(user);
+        assertEquals(200, response.extract().statusCode());
+        assertTrue("Регистрация не удалась", response.extract().jsonPath().getBoolean("success"));
+        accessToken = response.extract().jsonPath().getString("accessToken");
 
         loginPage.openLoginPage();
         loginPage.enterEmail(email);
@@ -79,12 +81,5 @@ public class ProfilePageTests {
         mainPage.clickProfileLink();
         profilePage.logoutUser();
         assertTrue("Не вышли на страницу авторизации", loginPage.isSignInButtonDisplayed());
-    }
-
-    @After
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
     }
 }

@@ -67,14 +67,4 @@ public class UserApi extends RestApi {
                 .log().all();
     }
 
-    @Step("Обновление данных пользователя")
-    public ValidatableResponse updateUserData(String accessToken, UserData user) {
-        return given()
-                .spec(requestSpecification())
-                .header("Authorization", accessToken)
-                .body(user)
-                .when()
-                .patch(USER_DATA_URL)
-                .then();
-    }
 }
